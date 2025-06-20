@@ -1,0 +1,67 @@
+FROM node:20-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    zsh \
+    sudo \
+    curl \
+    vim \
+    less \
+    fzf \
+    procps \
+    man-db \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a developer user with configurable UID/GID
+ARG USER_UID=1000
+ARG USER_GID=1000
+ARG USERNAME=developer
+
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+# Create necessary directories
+RUN mkdir -p /workspace/repos \
+    && mkdir -p /home/$USERNAME/.claude \
+    && mkdir -p /home/$USERNAME/.config \
+    && chown -R $USERNAME:$USERNAME /workspace /home/$USERNAME
+
+# Switch to developer user
+USER $USERNAME
+WORKDIR /home/$USERNAME
+
+# Install Oh My Zsh
+RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+# Install Claude Code globally
+RUN npm install -g @anthropic-ai/claude-code
+
+# Create a custom .zshrc that can source host config
+RUN echo '# Source host .zshrc if available' > /home/$USERNAME/.zshrc \
+    && echo 'if [ -f /host-config/.zshrc ]; then' >> /home/$USERNAME/.zshrc \
+    && echo '  source /host-config/.zshrc' >> /home/$USERNAME/.zshrc \
+    && echo 'fi' >> /home/$USERNAME/.zshrc \
+    && echo '' >> /home/$USERNAME/.zshrc \
+    && echo '# Container-specific configuration' >> /home/$USERNAME/.zshrc \
+    && echo 'export PATH=$PATH:/usr/local/bin' >> /home/$USERNAME/.zshrc \
+    && echo 'export CLAUDE_CONFIG_DIR=/home/$USERNAME/.claude' >> /home/$USERNAME/.zshrc \
+    && echo '' >> /home/$USERNAME/.zshrc \
+    && echo '# Default to workspace/repos directory' >> /home/$USERNAME/.zshrc \
+    && echo 'cd /workspace/repos 2>/dev/null || cd /workspace' >> /home/$USERNAME/.zshrc \
+    && echo '' >> /home/$USERNAME/.zshrc \
+    && echo '# Claude Code aliases' >> /home/$USERNAME/.zshrc \
+    && echo 'alias cc="claude"' >> /home/$USERNAME/.zshrc \
+    && echo 'alias claude-config="claude /config"' >> /home/$USERNAME/.zshrc
+
+# Set default shell
+RUN sudo chsh -s /bin/zsh $USERNAME
+
+# Set working directory to repos
+WORKDIR /workspace/repos
+
+# Default command
+CMD ["/bin/zsh"]
