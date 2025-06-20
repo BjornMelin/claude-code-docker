@@ -1,0 +1,61 @@
+# docker-compose.override.yml
+# This file is automatically loaded by docker-compose to extend the base configuration
+# Use this for custom volume mappings and other personalized settings
+
+version: "3.8"
+
+services:
+  claude-code:
+    volumes:
+      # Add your custom volume mappings here
+      # Examples:
+
+      # Mount Documents directory
+      # - type: bind
+      #   source: ${HOME}/Documents
+      #   target: /workspace/documents
+
+      # Mount Windows Desktop (useful for WSL users)
+      # - type: bind
+      #   source: /mnt/c/Users/${WINDOWS_USERNAME}/Desktop
+      #   target: /workspace/desktop
+
+      # Mount a shared projects directory
+      # - type: bind
+      #   source: /mnt/c/SharedProjects
+      #   target: /workspace/shared
+      #   read_only: false
+
+      # Mount configuration backups (read-only)
+      # - type: bind
+      #   source: ${HOME}/config-backups
+      #   target: /workspace/backups
+      #   read_only: true
+
+      # Mount Node.js version manager config
+      # - type: bind
+      #   source: ${HOME}/.nvm
+      #   target: /workspace/nvm-config
+      #   read_only: true
+
+      # Mount Python virtual environments
+      # - type: bind
+      #   source: ${HOME}/.virtualenvs
+      #   target: /workspace/python-envs
+      #   read_only: true
+
+      # Mount Docker config (if you want Docker-in-Docker capabilities)
+      # - type: bind
+      #   source: /var/run/docker.sock
+      #   target: /var/run/docker.sock
+      #   read_only: false
+
+    # environment:
+    # Add custom environment variables here
+    # - CUSTOM_VAR=value
+    # - WINDOWS_USERNAME=YourWindowsUsername
+
+    # ports:
+    # Expose additional ports if needed
+    # - "8080:8080"
+    # - "3000:3000"
