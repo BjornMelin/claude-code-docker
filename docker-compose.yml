@@ -1,0 +1,135 @@
+version: "3.8"
+
+services:
+  claude-code:
+    build:
+      context: .
+      dockerfile: Dockerfile.enhanced
+      args:
+        # User configuration
+        USER_UID: ${HOST_UID:-1000}
+        USER_GID: ${HOST_GID:-1000}
+        USERNAME: ${CONTAINER_USERNAME:-developer}
+
+        # Package manager selection
+        NODE_PACKAGE_MANAGER: ${NODE_PACKAGE_MANAGER:-pnpm}
+        PYTHON_PACKAGE_MANAGER: ${PYTHON_PACKAGE_MANAGER:-uv}
+
+        # Shell and language versions
+        DEFAULT_SHELL: ${PREFERRED_SHELL:-zsh}
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.12}
+
+        # Timezone
+        TZ: ${TZ:-UTC}
+
+    container_name: ${CONTAINER_NAME:-claude-code-dev}
+    hostname: ${CONTAINER_HOSTNAME:-claude-code-dev}
+    stdin_open: true
+    tty: true
+    network_mode: host
+
+    environment:
+      # Container configuration
+      - CLAUDE_CONFIG_DIR=/home/${CONTAINER_USERNAME:-developer}/.claude
+      - TERM=xterm-256color
+      - SHELL=/bin/${PREFERRED_SHELL:-zsh}
+
+      # Package manager environment
+      - NODE_PACKAGE_MANAGER=${NODE_PACKAGE_MANAGER:-pnpm}
+      - PYTHON_PACKAGE_MANAGER=${PYTHON_PACKAGE_MANAGER:-uv}
+
+      # Performance optimizations for package managers
+      - UV_CACHE_DIR=/home/${CONTAINER_USERNAME:-developer}/.cache/uv
+      - UV_COMPILE_BYTECODE=1
+      - UV_LINK_MODE=copy
+      - PNPM_HOME=/home/${CONTAINER_USERNAME:-developer}/.local/share/pnpm
+
+      # Python environment optimizations
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=0
+      - PIP_NO_CACHE_DIR=0
+
+    volumes:
+      # Core volume mappings
+      - type: bind
+        source: ${REPOS_PATH:-${HOME}/repos}
+        target: /workspace/repos
+        bind:
+          create_host_path: true
+
+      # Shell configuration mapping (conditional based on shell)
+      - type: bind
+        source: ${SHELL_CONFIG_PATH:-${HOME}/.${PREFERRED_SHELL:-zsh}rc}
+        target: /host-config/.${PREFERRED_SHELL:-zsh}rc
+        read_only: true
+
+      # Development configuration files
+      - type: bind
+        source: ${GIT_CONFIG_PATH:-${HOME}/.gitconfig}
+        target: /home/${CONTAINER_USERNAME:-developer}/.gitconfig
+        read_only: true
+
+      - type: bind
+        source: ${SSH_PATH:-${HOME}/.ssh}
+        target: /home/${CONTAINER_USERNAME:-developer}/.ssh
+        read_only: true
+
+      # Package manager configurations
+      - type: bind
+        source: ${NPM_CONFIG_PATH:-${HOME}/.npmrc}
+        target: /home/${CONTAINER_USERNAME:-developer}/.npmrc
+        read_only: true
+
+      # Python package manager cache (performance optimization)
+      - type: volume
+        source: python-cache
+        target: /home/${CONTAINER_USERNAME:-developer}/.cache
+
+      # Node package manager cache
+      - type: volume
+        source: node-cache
+        target: /home/${CONTAINER_USERNAME:-developer}/.local/share
+
+      # Persistent container data
+      - claude-code-config:/home/${CONTAINER_USERNAME:-developer}/.claude
+      - claude-code-history:/home/${CONTAINER_USERNAME:-developer}/.shell_history_persistent
+
+      # Optional: Package manager specific configs
+      # Uncomment based on your package manager choice
+
+      # For pnpm users - global pnpm config
+      # - type: bind
+      #   source: ${HOME}/.pnpmrc
+      #   target: /home/${CONTAINER_USERNAME:-developer}/.pnpmrc
+      #   read_only: true
+
+      # For uv users - global uv config
+      # - type: bind
+      #   source: ${HOME}/.config/uv
+      #   target: /home/${CONTAINER_USERNAME:-developer}/.config/uv
+      #   read_only: true
+
+    working_dir: ${CONTAINER_WORKING_DIR:-/workspace/repos}
+    restart: unless-stopped
+
+    # Health check to ensure container is ready
+    healthcheck:
+      test: ["CMD", "claude", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  claude-code-config:
+    driver: local
+  claude-code-history:
+    driver: local
+  python-cache:
+    driver: local
+  node-cache:
+    driver: local
+# Optional: Network configuration for advanced setups
+# networks:
+#   claude-dev:
+#     driver: bridge
