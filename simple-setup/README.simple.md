@@ -52,7 +52,7 @@ docker-compose build
 - **Node.js 20** with npm
 - **zsh** with Oh My Zsh
 - **Claude Code** pre-installed
-- **Basic volume mapping** for ~/repos
+- **Isolated workspace** at /workspace
 - **Git integration** with SSH keys
 - **Persistent Claude Code configuration**
 

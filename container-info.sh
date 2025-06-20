@@ -144,14 +144,9 @@ if [ "$INSIDE_CONTAINER" = true ]; then
     echo ""
     echo "📂 Volume Mounts:"
     echo "================="
-    echo "🏠 Host repos → /workspace/repos"
-    if [ -d "/workspace/repos" ]; then
-        REPO_COUNT=$(find /workspace/repos -maxdepth 1 -type d | wc -l)
-        REPO_COUNT=$((REPO_COUNT - 1)) # Subtract the parent directory
-        echo "   📊 Repositories found: $REPO_COUNT"
-    else
-        echo "   ❌ Repos directory not mounted"
-    fi
+    echo "🏠 Working directory: /workspace"
+    echo "   📊 Container works with fresh clones only"
+    echo "   ✅ No host repositories mounted for isolation"
 
     if [ -f "/host-config/.zshrc" ]; then
         echo "🐚 Host shell config → /host-config/"
@@ -164,10 +159,10 @@ if [ "$INSIDE_CONTAINER" = true ]; then
 
     # Custom mounts
     if [ -d "/workspace" ]; then
-        CUSTOM_DIRS=$(find /workspace -maxdepth 1 -type d ! -name "repos" ! -name "workspace" | wc -l)
+        CUSTOM_DIRS=$(find /workspace -maxdepth 1 -type d ! -name "workspace" | wc -l)
         if [ "$CUSTOM_DIRS" -gt 0 ]; then
-            echo "📁 Custom mounts:"
-            find /workspace -maxdepth 1 -type d ! -name "repos" ! -name "workspace" | while read dir; do
+            echo "📁 Workspace contents:"
+            find /workspace -maxdepth 1 -type d ! -name "workspace" | while read dir; do
                 DIRNAME=$(basename "$dir")
                 echo "   📂 $DIRNAME → $dir"
             done

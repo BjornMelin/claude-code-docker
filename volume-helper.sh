@@ -76,7 +76,7 @@ show_current_mappings() {
     if command -v yq &>/dev/null; then
         yq '.services.claude-code.volumes[]' docker-compose.yml 2>/dev/null || echo "  (unable to parse - yq not installed)"
     else
-        echo "  ~/repos → /workspace/repos (read/write)"
+        echo "  No host repos mounted - container uses fresh clones"
         echo "  ~/.zshrc → /host-config/.zshrc (read-only)"
         echo "  ~/.ssh → /home/developer/.ssh (read-only)"
         echo "  ~/.gitconfig → /home/developer/.gitconfig (read-only)"

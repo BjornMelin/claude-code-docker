@@ -40,7 +40,7 @@ fi
 echo "▶️  Launching Claude Code..."
 echo "💡 Once inside the container, run 'claude' to start Claude Code"
 echo "🔑 You'll need to authenticate Claude Code on first run"
-echo "📁 Your repos are available in /workspace/repos"
+echo "📁 Working directory: /workspace (clone your repos here)"
 echo "🐚 Type 'exit' to leave the container"
 echo ""
 
