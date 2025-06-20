@@ -248,10 +248,11 @@ for i in {1..3}; do
     echo ""
 done
 
-# Create project directory
-PROJECT_DIR="$HOME/claude-code-docker"
-echo "📁 Creating project directory at $PROJECT_DIR"
-mkdir -p "$PROJECT_DIR"
+# Create (or use existing) project directory – project root where this script lives
+# This ensures the generated .env sits beside env.example and other project files.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$SCRIPT_DIR"
+echo "📁 Using project directory: $PROJECT_DIR"
 cd "$PROJECT_DIR"
 
 # Get host UID and GID
@@ -285,7 +286,8 @@ NODE_PACKAGE_MANAGER=$NODE_PACKAGE_MANAGER
 PYTHON_PACKAGE_MANAGER=$PYTHON_PACKAGE_MANAGER
 
 # Language Versions
-PYTHON_VERSION=3.12
+# Debian bookworm (base image) provides Python 3.11, so default to that.
+PYTHON_VERSION=3.11
 
 # Core directory mappings
 REPOS_PATH=$repos_path

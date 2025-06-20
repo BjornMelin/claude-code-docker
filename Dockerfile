@@ -7,7 +7,7 @@ ARG DEFAULT_SHELL=zsh
 ARG USER_UID=1000
 ARG USER_GID=1000
 ARG USERNAME=developer
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.11
 
 # Set timezone
 ARG TZ=UTC
@@ -55,9 +55,20 @@ RUN apt-get update && apt-get install -y \
 RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3 \
     && ln -sf /usr/bin/python3 /usr/bin/python
 
-# Create developer user with configurable UID/GID
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+# Install Node.js package managers as root (before USER switch)
+RUN if [ "$NODE_PACKAGE_MANAGER" = "pnpm" ]; then \
+        # Install pnpm via corepack
+        corepack enable pnpm && \
+        corepack install --global pnpm@latest; \
+    elif [ "$NODE_PACKAGE_MANAGER" = "yarn" ]; then \
+        # Install yarn via corepack
+        corepack enable yarn && \
+        corepack install --global yarn@stable; \
+    fi
+
+# Create developer user, but gracefully handle cases where UID/GID 1000 already exist in the base image
+RUN groupadd -f -o -g $USER_GID $USERNAME \
+    && useradd -o -m -u $USER_UID -g $USER_GID $USERNAME \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
@@ -85,16 +96,9 @@ ENV UV_LINK_MODE="copy"
 # Configure PATH for all package managers
 ENV PATH="/home/$USERNAME/.local/bin:$PNPM_HOME:$PATH"
 
-# Install Node.js package managers based on selection
+# Configure pnpm store directory if using pnpm
 RUN if [ "$NODE_PACKAGE_MANAGER" = "pnpm" ]; then \
-        # Install pnpm via corepack (fastest method)
-        corepack enable pnpm && \
-        corepack install --global pnpm@latest && \
         pnpm config set store-dir /home/$USERNAME/.local/share/pnpm/store; \
-    elif [ "$NODE_PACKAGE_MANAGER" = "yarn" ]; then \
-        # Install yarn via corepack
-        corepack enable yarn && \
-        corepack install --global yarn@stable; \
     fi
 
 # Install Python package managers based on selection
@@ -146,7 +150,6 @@ RUN if [ "$DEFAULT_SHELL" = "zsh" ]; then \
         echo 'echo "🐍 Python $(python --version | cut -d\" \" -f2) with '$PYTHON_PACKAGE_MANAGER'"' >> ~/.zshrc && \
         echo 'echo "🐚 '$DEFAULT_SHELL' shell configured"' >> ~/.zshrc && \
         echo 'echo ""' >> ~/.zshrc && \
-        echo '' >> ~/.zshrc && \
         echo '# Package Manager Environment' >> ~/.zshrc && \
         echo 'export NODE_PACKAGE_MANAGER='$NODE_PACKAGE_MANAGER >> ~/.zshrc && \
         echo 'export PYTHON_PACKAGE_MANAGER='$PYTHON_PACKAGE_MANAGER >> ~/.zshrc && \
