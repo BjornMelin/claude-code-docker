@@ -1,10 +1,8 @@
-version: "3.8"
-
 services:
   claude-code:
     build:
       context: .
-      dockerfile: Dockerfile.enhanced
+      dockerfile: Dockerfile
       args:
         # User configuration
         USER_UID: ${HOST_UID:-1000}
@@ -17,7 +15,7 @@ services:
 
         # Shell and language versions
         DEFAULT_SHELL: ${PREFERRED_SHELL:-zsh}
-        PYTHON_VERSION: ${PYTHON_VERSION:-3.12}
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.11}
 
         # Timezone
         TZ: ${TZ:-UTC}
