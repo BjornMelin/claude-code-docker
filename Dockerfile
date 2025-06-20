@@ -88,7 +88,7 @@ RUN if [ "$DEFAULT_SHELL" = "zsh" ]; then \
     fi
 
 # Create necessary directories
-RUN mkdir -p /workspace/repos \
+RUN mkdir -p /workspace \
     && mkdir -p /home/$USERNAME/.claude \
     && mkdir -p /home/$USERNAME/.config \
     && mkdir -p /home/$USERNAME/.local/bin \
@@ -181,8 +181,8 @@ RUN if [ "$DEFAULT_SHELL" = "zsh" ]; then \
         echo 'alias cc="claude"' >> ~/.zshrc && \
         echo 'alias claude-config="claude /config"' >> ~/.zshrc && \
         echo '' >> ~/.zshrc && \
-        echo '# Default to workspace/repos directory' >> ~/.zshrc && \
-        echo 'cd /workspace/repos 2>/dev/null || cd /workspace' >> ~/.zshrc; \
+        echo '# Default to workspace directory' >> ~/.zshrc && \
+        echo 'cd /workspace' >> ~/.zshrc; \
     elif [ "$DEFAULT_SHELL" = "bash" ]; then \
         # Configure bash (similar structure)
         echo '# Source host .bashrc if available' > ~/.bashrc && \
@@ -198,7 +198,7 @@ RUN if [ "$DEFAULT_SHELL" = "zsh" ]; then \
         echo 'alias ni="'$NODE_PACKAGE_MANAGER' install"' >> ~/.bashrc && \
         echo 'alias pi="'$PYTHON_PACKAGE_MANAGER' install"' >> ~/.bashrc && \
         echo 'alias cc="claude"' >> ~/.bashrc && \
-        echo 'cd /workspace/repos 2>/dev/null || cd /workspace' >> ~/.bashrc; \
+        echo 'cd /workspace' >> ~/.bashrc; \
     elif [ "$DEFAULT_SHELL" = "fish" ]; then \
         # Configure fish
         mkdir -p ~/.config/fish && \
@@ -208,7 +208,7 @@ RUN if [ "$DEFAULT_SHELL" = "zsh" ]; then \
         echo 'alias ni="'$NODE_PACKAGE_MANAGER' install"' >> ~/.config/fish/config.fish && \
         echo 'alias pi="'$PYTHON_PACKAGE_MANAGER' install"' >> ~/.config/fish/config.fish && \
         echo 'alias cc="claude"' >> ~/.config/fish/config.fish && \
-        echo 'cd /workspace/repos 2>/dev/null || cd /workspace' >> ~/.config/fish/config.fish; \
+        echo 'cd /workspace' >> ~/.config/fish/config.fish; \
     fi
 
 # Create a helpful info script
@@ -227,7 +227,7 @@ RUN echo '#!/bin/bash' > /home/$USERNAME/container-info.sh && \
     chmod +x /home/$USERNAME/container-info.sh
 
 # Set working directory
-WORKDIR /workspace/repos
+WORKDIR /workspace
 
 # Default command based on shell choice
 CMD ["/bin/sh", "-c", "exec $SHELL"]

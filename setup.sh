@@ -179,14 +179,10 @@ echo ""
 echo "📁 Directory Mappings:"
 echo "====================="
 echo ""
-echo "Repository directory (where your code projects are stored):"
-read -p "Repos path [\$HOME/repos]: " repos_path
-repos_path=${repos_path:-$HOME/repos}
-
 echo ""
 echo "Default working directory inside container:"
-read -p "Working directory [/workspace/repos]: " working_dir
-working_dir=${working_dir:-/workspace/repos}
+read -p "Working directory [/workspace]: " working_dir
+working_dir=${working_dir:-/workspace}
 
 echo ""
 echo "🔧 Configuration File Paths:"
@@ -290,7 +286,6 @@ PYTHON_PACKAGE_MANAGER=$PYTHON_PACKAGE_MANAGER
 PYTHON_VERSION=3.11
 
 # Core directory mappings
-REPOS_PATH=$repos_path
 
 # Configuration file paths
 SHELL_CONFIG_PATH=$shell_config_path
@@ -314,7 +309,6 @@ EOF
 
 # Ensure required directories exist (existing logic)
 echo "📂 Ensuring required directories exist..."
-mkdir -p "$repos_path"
 
 # Create missing config files (existing logic but enhanced)
 if [ ! -f "$shell_config_path" ]; then
@@ -426,7 +420,7 @@ echo "🐚 Shell: $PREFERRED_SHELL"
 echo "📦 Node.js Package Manager: $NODE_PACKAGE_MANAGER"
 echo "🐍 Python Package Manager: $PYTHON_PACKAGE_MANAGER"
 echo "📦 Container: $container_name ($container_username)"
-echo "📁 Repos: $repos_path → /workspace/repos"
+echo "📁 Workspace: Container will use fresh clones in /workspace"
 echo "🔧 Shell config: $shell_config_path"
 echo "📝 Git config: $git_config_path"
 echo "🔑 SSH: $ssh_path"

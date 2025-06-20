@@ -49,11 +49,7 @@ services:
 
     volumes:
       # Core volume mappings
-      - type: bind
-        source: ${REPOS_PATH:-${HOME}/repos}
-        target: /workspace/repos
-        bind:
-          create_host_path: true
+      # Removed host repos mapping - container will work with fresh clones
 
       # Shell configuration mapping (conditional based on shell)
       - type: bind
@@ -107,7 +103,7 @@ services:
       #   target: /home/${CONTAINER_USERNAME:-developer}/.config/uv
       #   read_only: true
 
-    working_dir: ${CONTAINER_WORKING_DIR:-/workspace/repos}
+    working_dir: /workspace
     restart: unless-stopped
 
     # Health check to ensure container is ready

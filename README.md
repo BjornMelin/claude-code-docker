@@ -1,6 +1,6 @@
 # Claude Code Docker Container for WSL
 
-🐳 Isolated Claude Code development environment for WSL with **multi-language support**, **configurable package managers**, **custom directory mappings**, and seamless access to your host development files while keeping Claude Code configuration isolated. Get Anthropic's AI assistant running in Docker while keeping your repos, configs, and SSH keys perfectly mapped. This setup creates an isolated Docker container for running Claude Code on WSL Windows 11, with proper volume mapping to access your host development files while keeping Claude Code configuration isolated. Perfect for Windows developers! ⚡
+🐳 Isolated Claude Code development environment for WSL with **multi-language support**, **configurable package managers**, and seamless development workflow while keeping Claude Code configuration isolated. Get Anthropic's AI assistant running in Docker with isolated workspaces where you can clone and work on separate branches independently from your host system. This setup creates an isolated Docker container for running Claude Code on WSL Windows 11, perfect for maintaining separate development environments. Perfect for Windows developers! ⚡
 
 ## ✨ Features
 
@@ -43,7 +43,7 @@ This combination provides **maximum development speed** with significantly faste
 - ✅ **Multi-Language Ready**: Node.js 20 + Python 3.12 with optimized package managers
 - ✅ **Package Manager Choice**: Select npm/pnpm/yarn for Node.js and pip/uv for Python
 - ✅ **Shell Choice**: Pick zsh (with Oh My Zsh), bash, or fish as your preferred shell
-- ✅ **Access to Host Repos**: Full read/write access to your configured repositories directory
+- ✅ **Isolated Workspace**: Fresh workspace for cloning and working on projects independently
 - ✅ **Inherited Shell Configuration**: Container sources your host shell config
 - ✅ **Custom Directory Mappings**: Map any host directories into the container
 - ✅ **Git Integration**: Access to your SSH keys and git configuration
@@ -83,59 +83,93 @@ Most users should start with the **Enhanced Setup** as it provides much better p
 
 ## Quick Start
 
-### Option 1: Enhanced Interactive Setup (Recommended)
-
-The enhanced setup script will guide you through configuring your preferred package managers, shell, and directory mappings:
+### Step 1: Clone and Configure
 
 ```bash
-chmod +x setup.sh
+# Clone the repository
+git clone https://github.com/yourusername/claude-code-docker.git
+cd claude-code-docker
+
+# Make scripts executable
+chmod +x setup.sh start.sh cleanup.sh
+```
+
+### Step 2: Run Interactive Setup (Recommended)
+
+The setup script will guide you through all configuration options:
+
+```bash
 ./setup.sh
 ```
 
-This interactive setup will ask about:
-
+This will configure:
 - **Package managers**: Node.js (npm/pnpm/yarn) and Python (pip/uv) with performance explanations
-- Your preferred shell (zsh, bash, or fish)
-- Container name and username
-- Directory mappings (repos, documents, etc.)
-- Configuration file paths
-- Custom directory mappings
+- **Shell preference**: zsh (with Oh My Zsh), bash, or fish
+- **Container settings**: Name and username
+- **Configuration paths**: Shell config, git config, SSH keys
 
-### Option 2: Quick Performance Setup
+### Step 3: Build the Container
 
-For maximum performance without interaction:
+After setup completes, build the Docker image:
 
 ```bash
-# Copy the configuration template
-cp .env.example .env
-
-# Edit for high-performance setup (pnpm + uv)
-nano .env  # Set NODE_PACKAGE_MANAGER=pnpm, PYTHON_PACKAGE_MANAGER=uv
-
-# Build and start
 docker-compose build
-docker-compose run --rm claude-code
 ```
 
-### Option 3: Use Presets
+### Step 4: Start the Container
 
-For common development scenarios, use the volume helper:
+Launch your isolated development environment:
 
 ```bash
-chmod +x volume-helper.sh
-./volume-helper.sh
-# Choose from Windows dev, Node.js dev, Python dev, or Docker dev presets
+./start.sh
+# Or manually: docker-compose run --rm claude-code
 ```
 
-### 4. Authenticate Claude Code
+### Step 5: Authenticate Claude Code
 
-Inside the container, run:
+Once inside the container:
 
 ```bash
 claude
 ```
 
 Follow the authentication prompts to connect your Anthropic account.
+
+### Step 6: Start Developing
+
+Your container is now ready! Clone your repositories:
+
+```bash
+cd /workspace
+git clone git@github.com:yourusername/your-repo.git
+cd your-repo
+claude  # Start Claude Code in your project
+```
+
+## Alternative Setup Options
+
+### Quick Setup (Without Interactive Prompts)
+
+If you prefer manual configuration:
+
+```bash
+# Copy and edit configuration
+cp .env.example .env
+nano .env  # Edit settings manually
+
+# Build and run
+docker-compose build
+docker-compose run --rm claude-code
+```
+
+### Using Presets
+
+For common development scenarios:
+
+```bash
+./volume-helper.sh
+# Choose from preset configurations
+```
 
 ## Package Manager Configuration
 
@@ -207,11 +241,11 @@ Choose your preferred shell during setup:
 
 ### Directory Mappings
 
-The container supports flexible directory mappings:
+The container provides an isolated workspace with access to essential configurations:
 
 #### Core Mappings (Always Included)
 
-- `~/repos` → `/workspace/repos` (your main development directory)
+- `/workspace` - Main working directory for cloning and developing projects
 - Shell config → `/host-config/` (inherits your aliases and functions)
 - `~/.ssh` → `/home/developer/.ssh` (git authentication)
 - `~/.gitconfig` → `/home/developer/.gitconfig` (git identity)
@@ -254,11 +288,11 @@ Or with the convenience script:
 Once inside the container:
 
 1. **Start Claude Code**: Run `claude` in any directory
-2. **Access Your Repos**: Your configured repos directory is at `/workspace/repos`
+2. **Clone Projects**: Use `/workspace` to clone and work on repositories
 3. **Use Git**: Your SSH keys and git config are available
 4. **Multi-Language Development**: Both Node.js and Python are ready to use
 5. **Package Management**: Use smart aliases based on your selections
-6. **Custom Directories**: Access any mapped directories under `/workspace/`
+6. **Isolated Development**: Work on branches/features separate from your host
 
 ### Smart Package Management Aliases
 
@@ -325,7 +359,7 @@ time pi requests         # With uv: ~1-3 seconds
 **Starting a new Node.js project:**
 
 ```bash
-cd /workspace/repos
+cd /workspace
 mkdir my-node-project && cd my-node-project
 npm init -y  # Creates package.json
 ni express typescript  # Fast installation with your package manager
@@ -335,7 +369,7 @@ claude  # Start Claude Code for development
 **Starting a new Python project:**
 
 ```bash
-cd /workspace/repos
+cd /workspace
 mkdir my-python-project && cd my-python-project
 
 # With uv (auto-creates virtual environment)
@@ -348,7 +382,9 @@ claude  # Start Claude Code for development
 **Working on existing projects:**
 
 ```bash
-cd /workspace/repos/<project-name>
+cd /workspace
+git clone git@github.com:username/project.git
+cd project
 
 # Node.js project
 ni                     # Install dependencies fast
@@ -384,7 +420,6 @@ pi <package>             # Install in virtual environment
 
 ```text
 Host (WSL)                    Container
-├── ~/repos/             →    /workspace/repos/ (read/write)
 ├── ~/.zshrc             →    /host-config/.zshrc (read-only)
 ├── ~/.ssh/              →    /home/developer/.ssh (read-only)  
 ├── ~/.gitconfig         →    /home/developer/.gitconfig (read-only)
@@ -395,11 +430,11 @@ Container-Specific:
 ├── /home/developer/.claude/     (Claude Code config - isolated)
 ├── /home/developer/.cache/      (Package manager caches - persistent)
 ├── /home/developer/.local/      (Package manager data - persistent)
-└── /workspace/                  (Main working area)
-    ├── repos/                   (Your development repositories)
+└── /workspace/                  (Main working area - isolated)
+    ├── project1/                (Your cloned repositories)
+    ├── project2/                (Work on different branches)
     ├── documents/               (Optional: mapped ~/Documents)  
-    ├── desktop/                 (Optional: mapped Windows Desktop)
-    └── custom1-3/               (Optional: your custom mappings)
+    └── custom/                  (Optional: your custom mappings)
 
 Multi-Language Environment:
 ├── Node.js 20                   (Built-in with selected package manager)
@@ -433,7 +468,7 @@ Host Path                     Container Path              Purpose
 
 | Host Path | Container Path | Access | Purpose |
 |-----------|---------------|---------|---------|
-| `${REPOS_PATH}` | `/workspace/repos` | Read/Write | Development repositories |
+| (none) | `/workspace` | Read/Write | Isolated development workspace |
 | `${SHELL_CONFIG_PATH}` | `/host-config/.${SHELL}rc` | Read-Only | Shell configuration |
 | `${SSH_PATH}` | `/home/developer/.ssh` | Read-Only | SSH keys for git |
 | `${GIT_CONFIG_PATH}` | `/home/developer/.gitconfig` | Read-Only | Git user configuration |
@@ -677,10 +712,10 @@ grep CONFIG_PATH .env
 
 ### File Access Issues
 
-1. Verify host directories exist: `ls -la ~/repos`
-2. Check mount paths: `docker-compose config`
-3. Restart Docker Desktop if needed
-4. Use volume helper to verify mappings: `./volume-helper.sh`
+1. Verify workspace directory: `ls -la /workspace` (inside container)
+2. Check git configuration: `git config --list`
+3. Verify SSH keys are accessible: `ls -la ~/.ssh`
+4. Use volume helper for custom mappings: `./volume-helper.sh`
 
 ## Advanced Configuration
 
@@ -717,11 +752,10 @@ CONTAINER_USERNAME=myuser
 PREFERRED_SHELL=bash
 
 # Path configurations  
-REPOS_PATH=/mnt/c/MyProjects
 SHELL_CONFIG_PATH=/home/user/.bashrc
 
 # Custom working directory
-CONTAINER_WORKING_DIR=/workspace/myproject
+CONTAINER_WORKING_DIR=/workspace
 ```
 
 ### Docker Compose Overrides
@@ -813,10 +847,10 @@ rm docker-compose.override.yml
 ### Usage Tips  
 
 1. **Authenticate once** - credentials persist between sessions
-2. **Keep repos organized** in your mapped repos directory
+2. **Clone fresh repos** in /workspace for isolated development
 3. **Use git inside container** - all your keys and config are available
-4. **Leverage custom mappings** for project-specific directories
-5. **Use the volume helper** for easy mapping management
+4. **Work on separate branches** without affecting your host repos
+5. **Use the volume helper** for custom directory mappings
 
 ### Performance Tips
 
