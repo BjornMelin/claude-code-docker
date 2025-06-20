@@ -66,11 +66,26 @@ RUN if [ "$NODE_PACKAGE_MANAGER" = "pnpm" ]; then \
         corepack install --global yarn@stable; \
     fi
 
+# Install git-delta for better diffs (as root)
+RUN ARCH=$(dpkg --print-architecture) && \
+    wget "https://github.com/dandavison/delta/releases/download/0.18.2/git-delta_0.18.2_${ARCH}.deb" && \
+    dpkg -i "git-delta_0.18.2_${ARCH}.deb" && \
+    rm "git-delta_0.18.2_${ARCH}.deb"
+
 # Create developer user, but gracefully handle cases where UID/GID 1000 already exist in the base image
 RUN groupadd -f -o -g $USER_GID $USERNAME \
     && useradd -o -m -u $USER_UID -g $USER_GID $USERNAME \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
+
+# Set default shell for user (as root)
+RUN if [ "$DEFAULT_SHELL" = "zsh" ]; then \
+        chsh -s /bin/zsh $USERNAME; \
+    elif [ "$DEFAULT_SHELL" = "bash" ]; then \
+        chsh -s /bin/bash $USERNAME; \
+    elif [ "$DEFAULT_SHELL" = "fish" ]; then \
+        chsh -s /usr/bin/fish $USERNAME; \
+    fi
 
 # Create necessary directories
 RUN mkdir -p /workspace/repos \
@@ -117,12 +132,6 @@ RUN if [ "$DEFAULT_SHELL" = "zsh" ]; then \
     elif [ "$DEFAULT_SHELL" = "fish" ]; then \
         curl -L https://get.oh-my.fish | fish || true; \
     fi
-
-# Install git-delta for better diffs
-RUN ARCH=$(dpkg --print-architecture) && \
-    wget "https://github.com/dandavison/delta/releases/download/0.18.2/git-delta_0.18.2_${ARCH}.deb" && \
-    sudo dpkg -i "git-delta_0.18.2_${ARCH}.deb" && \
-    rm "git-delta_0.18.2_${ARCH}.deb"
 
 # Install Claude Code using the selected Node package manager
 RUN if [ "$NODE_PACKAGE_MANAGER" = "pnpm" ]; then \
@@ -200,15 +209,6 @@ RUN if [ "$DEFAULT_SHELL" = "zsh" ]; then \
         echo 'alias pi="'$PYTHON_PACKAGE_MANAGER' install"' >> ~/.config/fish/config.fish && \
         echo 'alias cc="claude"' >> ~/.config/fish/config.fish && \
         echo 'cd /workspace/repos 2>/dev/null || cd /workspace' >> ~/.config/fish/config.fish; \
-    fi
-
-# Set default shell
-RUN if [ "$DEFAULT_SHELL" = "zsh" ]; then \
-        sudo chsh -s /bin/zsh $USERNAME; \
-    elif [ "$DEFAULT_SHELL" = "bash" ]; then \
-        sudo chsh -s /bin/bash $USERNAME; \
-    elif [ "$DEFAULT_SHELL" = "fish" ]; then \
-        sudo chsh -s /usr/bin/fish $USERNAME; \
     fi
 
 # Create a helpful info script
