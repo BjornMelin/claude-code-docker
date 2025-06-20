@@ -52,7 +52,6 @@ EOF
 
 # Ensure required directories exist
 echo "📂 Ensuring required directories exist..."
-mkdir -p "$HOME/repos"
 
 # Create missing config files if they don't exist
 if [ ! -f "$HOME/.zshrc" ]; then
@@ -104,7 +103,7 @@ echo "  View logs:       docker-compose logs"
 echo "  Cleanup:         docker-compose down && docker system prune"
 echo ""
 echo "💡 The container will have access to:"
-echo "  - Your repos in ~/repos (read/write)"
+echo "  - Container workspace at /workspace (for fresh clones)"
 echo "  - Your shell config from ~/.zshrc (read-only)"  
 echo "  - Your SSH keys from ~/.ssh (read-only)"
 echo "  - Your git config from ~/.gitconfig (read-only)"

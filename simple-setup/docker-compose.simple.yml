@@ -19,12 +19,7 @@ services:
       - TERM=xterm-256color
       - SHELL=/bin/zsh
     volumes:
-      # Mount host repos directory (read/write)
-      - type: bind
-        source: ${HOME}/repos
-        target: /workspace/repos
-        bind:
-          create_host_path: true
+      # No host repos mounted - container will use fresh clones
 
       # Mount host shell config (read-only)
       - type: bind
@@ -56,7 +51,7 @@ services:
         target: /home/developer/.npmrc
         read_only: true
 
-    working_dir: /workspace/repos
+    working_dir: /workspace
     restart: unless-stopped
 
 volumes:
